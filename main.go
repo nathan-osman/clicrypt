@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -9,10 +10,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 // Configuration for the application provided at runtime.
 var (
+	key      string
 	size     int
 	command  string
 	filename string
@@ -28,7 +31,8 @@ func printUsage() {
 // Register and parse the configuration flags.
 func parseFlags() {
 	flag.Usage = printUsage
-	flag.IntVar(&size, "size", 16, "PSK size in `bytes`")
+	flag.StringVar(&key, "key", "", "`base64`-encoded key used for decryption")
+	flag.IntVar(&size, "size", 16, "size in `bytes` of generated PSK")
 	flag.Parse()
 	if flag.NArg() != 2 {
 		printUsage()
@@ -40,8 +44,19 @@ func parseFlags() {
 
 // Encrypt the file.
 func encrypt() error {
+	inputFile, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer inputFile.Close()
+	outputFilename := filename + ".encrypted"
+	outputFile, err := os.Create(outputFilename)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
 	psk := make([]byte, size)
-	_, err := rand.Read(psk)
+	_, err = rand.Read(psk)
 	if err != nil {
 		return err
 	}
@@ -54,24 +69,12 @@ func encrypt() error {
 	if err != nil {
 		return err
 	}
-	stream := cipher.NewCFBEncrypter(block, iv)
-	inputFile, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer inputFile.Close()
-	outputFilename := filename + ".aes"
-	outputFile, err := os.Create(outputFilename)
-	if err != nil {
-		return err
-	}
-	defer outputFile.Close()
 	_, err = outputFile.Write(iv)
 	if err != nil {
 		return err
 	}
 	writer := &cipher.StreamWriter{
-		S: stream,
+		S: cipher.NewCFBEncrypter(block, iv),
 		W: outputFile,
 	}
 	_, err = io.Copy(writer, inputFile)
@@ -86,6 +89,48 @@ func encrypt() error {
 
 // Decrypt the file.
 func decrypt() error {
+	inputFile, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer inputFile.Close()
+	outputFilename := strings.TrimSuffix(filename, ".encrypted")
+	outputFile, err := os.Create(outputFilename)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+	if key == "" {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("enter the pre-shared key: ")
+		text, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		key = text
+	}
+	psk, err := base64.StdEncoding.DecodeString(key)
+	if err != nil {
+		return err
+	}
+	block, err := aes.NewCipher(psk)
+	if err != nil {
+		return err
+	}
+	iv := make([]byte, aes.BlockSize)
+	_, err = inputFile.Read(iv)
+	if err != nil {
+		return err
+	}
+	reader := &cipher.StreamReader{
+		S: cipher.NewCFBDecrypter(block, iv),
+		R: inputFile,
+	}
+	_, err = io.Copy(outputFile, reader)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("decrypted file \"%s\"\n", outputFilename)
 	return nil
 }
 
