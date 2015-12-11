@@ -23,7 +23,7 @@ var (
 
 // Display usage information for the application.
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "USAGE\n\thectane [FLAGS] encrypt|decrypt FILE\n\n")
+	fmt.Fprintf(os.Stderr, "USAGE\n\tclicrypt [FLAGS] encrypt|decrypt FILE\n\n")
 	fmt.Fprintf(os.Stderr, "FLAGS\n")
 	flag.PrintDefaults()
 }
