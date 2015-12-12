@@ -2,19 +2,44 @@
 
 [![MIT License](http://img.shields.io/badge/license-MIT-9370d8.svg?style=flat)](http://opensource.org/licenses/MIT)
 
-This simple application simplifies the task of encrypting and decrypting a single file.
+This simple application simplifies the task of encrypting and decrypting data.
 
 ### Usage
 
-Encrypting a file is as simple as:
+The examples below demonstrate basic usage of the application.
 
-    $ clicrypt encrypt somefile.txt
-    encrypted "somefile.txt.encrypted" with pre-shared key "..."
+#### Encryption
 
-Be sure to hang on to the pre-shared key since it will be needed to decrypt the file later:
+To create an encrypted copy of a file:
 
-    $ clicrypt decrypt somefile.txt.encrypted
-    enter the pre-shared key: [...]
-    decrypted file "somefile.txt"
+    clicrypt encrypt -c -i plain.txt -o cipher.txt
 
-It is possible to pass the pre-shared key as an argument to `clicrypt`, but doing so [may be a security vulnerability](http://unix.stackexchange.com/q/8223/1049).
+A new pre-shared key which can be used for decrypting the file will be generated and printed to STDERR. Because clicrypt uses STDIN and STDOUT by default, the above command could also be written as:
+
+    clicrypt encrypt -c < plain.txt > cipher.txt
+
+Use the `-k` flag to write the key to disk instead of printing it to STDERR:
+
+    clicrypt encrypt -c -k key ...
+
+To use an existing key instead of generating a new one, omit the `-c` flag.
+
+#### Decryption
+
+To create a decrypted copy of a file:
+
+    clicrypt decrypt -k key -i cipher.txt -o plain.txt
+
+Once again, clicrypt uses STDIN and STDOUT by default, so the above command could also be written as:
+
+    clicrypt decrypt -k key < cipher.txt > plain.txt
+
+#### Using in Pipelines
+
+clicrypt is designed to integrate easily with [pipelines](https://en.wikipedia.org/wiki/Pipeline_(Unix)). For example, to encrypt and compress an entire directory, you could create a pipeline with `tar` and `gz`:
+
+    tar cf - somedir | clicrypt encrypt -c -k key | gzip > cipher.gz
+
+Decompressing and decrypting the directory could then be done with:
+
+    gunzip -c cipher.gz | clicrypt decrypt -k key | tar xf -
