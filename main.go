@@ -15,5 +15,6 @@ func main() {
 		encryptCommand,
 		decryptCommand,
 	}
+	app.Writer = os.Stderr
 	app.Run(os.Args)
 }
