@@ -32,34 +32,21 @@ func openOutput(filename string) (*os.File, error) {
 
 // Generate a new pre-shared key of the requested size.
 func generateKey(filename string, size int) ([]byte, error) {
-	var (
-		w   *os.File
-		err error
-	)
-	if filename == "" {
-		w = os.Stderr
-	} else {
-		w, err = os.Create(filename)
-		if err != nil {
-			return nil, err
-		}
-		defer w.Close()
+	f, err := os.Create(filename)
+	if err != nil {
+		return nil, err
 	}
+	defer f.Close()
 	b := make([]byte, size)
 	_, err = rand.Read(b)
 	if err != nil {
 		return nil, err
 	}
-	if filename == "" {
-		fmt.Fprintf(os.Stderr, "Key generated: %s\n",
-			base64.StdEncoding.EncodeToString(b))
-	} else {
-		w := base64.NewEncoder(base64.StdEncoding, w)
-		defer w.Close()
-		_, err = w.Write(b)
-		if err != nil {
-			return nil, err
-		}
+	w := base64.NewEncoder(base64.StdEncoding, f)
+	defer w.Close()
+	_, err = w.Write(b)
+	if err != nil {
+		return nil, err
 	}
 	return b, nil
 }
