@@ -36,10 +36,10 @@ Once again, clicrypt uses STDIN and STDOUT by default, so the above command coul
 
 #### Using in Pipelines
 
-clicrypt is designed to integrate easily with [pipelines](https://en.wikipedia.org/wiki/Pipeline_(Unix)). For example, to encrypt and compress an entire directory, you could create a pipeline with `tar` and `gz`:
+clicrypt is designed to integrate easily with [pipelines](https://en.wikipedia.org/wiki/Pipeline_(Unix)). For example, to compress and encrypt an entire directory, you could create a pipeline with `tar`:
 
-    tar cf - somedir | clicrypt encrypt -c -k key | gzip > cipher.gz
+    tar czf - somedir | clicrypt encrypt -c -k key > encrypted.tar.gz
 
-Decompressing and decrypting the directory could then be done with:
+Decrypting and decompressing the directory could then be done with:
 
-    gunzip -c cipher.gz | clicrypt decrypt -k key | tar xf -
+    clicrypt decrypt -k key < encrypted.tar.gz | tar xzf -
