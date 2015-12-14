@@ -10,23 +10,19 @@ The examples below demonstrate basic usage of the application.
 
 #### Encryption
 
-To create an encrypted copy of a file:
+To generate a new pre-shared key and encrypt a file with it:
 
-    clicrypt encrypt -c -i plain.txt -o cipher.txt
+    clicrypt encrypt -c -k key -i plain.txt -o cipher.txt
 
-A new pre-shared key which can be used for decrypting the file will be generated and printed to STDERR. Because clicrypt uses STDIN and STDOUT by default, the above command could also be written as:
+Because clicrypt uses STDIN and STDOUT by default, the above command could also be written as:
 
-    clicrypt encrypt -c < plain.txt > cipher.txt
-
-Use the `-k` flag to write the key to disk instead of printing it to STDERR:
-
-    clicrypt encrypt -c -k key ...
+    clicrypt encrypt -c -k key < plain.txt > cipher.txt
 
 To use an existing key instead of generating a new one, omit the `-c` flag.
 
 #### Decryption
 
-To create a decrypted copy of a file:
+To decrypt a file:
 
     clicrypt decrypt -k key -i cipher.txt -o plain.txt
 
