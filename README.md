@@ -2,7 +2,7 @@
 
 [![MIT License](http://img.shields.io/badge/license-MIT-9370d8.svg?style=flat)](http://opensource.org/licenses/MIT)
 
-This simple application simplifies the task of encrypting and decrypting data.
+This handly little application simplifies the task of encrypting and decrypting data.
 
 ### Usage
 
